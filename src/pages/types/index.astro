@@ -1,0 +1,228 @@
+---
+import AiSidebar from '../../components/AiSidebar.astro';
+import { terms } from "../../data/terms";
+
+const groups = [
+  { key: "family", label: "家族 Families", desc: "WHO CNS5 分类树的 11 个顶层家族" },
+  { key: "group", label: "子群 Groups", desc: "胶质瘤家族内部的分组与成人型三分法总览" },
+  { key: "type", label: "类型 Types", desc: "分子定义的具体肿瘤类型" },
+] as const;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>分类词条系统 · WHO CNS5 | 影像知识笔记</title>
+    <meta name="description" content="WHO CNS5 分类词条系统：21 个英文索引词条，家族 / 子群 / 类型三级结构，正文中文。" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <nav class="crumbs">
+      <a href="/">← 首页</a>
+      <span>/</span>
+      <span class="here">词条系统</span>
+    </nav>
+
+    <main>
+      <header>
+        <h1>WHO CNS5 分类词条系统</h1>
+        <p class="sub">
+          共 {terms.length} 个词条 · 英文名称索引，正文中文 · 与 mri-wiki-cn 知识库同源
+        </p>
+
+        <div class="search-wrap">
+          <input
+            id="term-search"
+            type="search"
+            placeholder="搜索词条：中文 / English / 分子标志…（Ctrl+K）"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <p id="search-status" class="search-status" hidden></p>
+        </div>
+      </header>
+
+      <div id="search-results" hidden></div>
+
+      <div id="grouped">
+      {groups.map((g) => (
+        <section>
+          <h2>{g.label}</h2>
+          <p class="desc">{g.desc}</p>
+          <div class="grid">
+            {terms
+              .filter((t) => t.level === g.key)
+              .map((t) => (
+                <a class="card" href={`/types/${t.slug}/`}>
+                  <span class="en">{t.en}</span>
+                  <span class="zh">{t.zh}</span>
+                  {t.grades && <span class="grade">{t.grades}</span>}
+                </a>
+              ))}
+          </div>
+        </section>
+      ))}
+      </div>
+    </main>
+
+    <footer>
+      <p class="brand">「认知凤凰社」出品</p>
+      <p>
+        重构自 <a href="https://radiopaedia.org/articles/who-classification-of-cns-tumours-1?lang=us" target="_blank" rel="noopener">Radiopaedia</a>（CC BY-NC-SA）· 仅供学习交流
+      </p>
+    </footer>
+
+    <style>
+      :root {
+        --bg:#faf9f7; --surface:#fff; --ink:#1f2933; --muted:#5f6b76;
+        --accent:#0f766e; --accent-soft:#ccfbf1; --line:#e4e2dd;
+        --mono:ui-monospace,"SF Mono",Menlo,monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg:#14181c; --surface:#1c2127; --ink:#e7ebef; --muted:#9aa7b1; --accent:#2dd4bf; --accent-soft:#0f3d38; --line:#2c333b; }
+      }
+      * { box-sizing:border-box; }
+      body { margin:0; background:var(--bg); color:var(--ink);
+        font:16px/1.7 system-ui,-apple-system,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; }
+      a { color:var(--accent); text-decoration:none; }
+      a:hover { text-decoration:none; }
+      a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+      /* 正文内联链接：常态干净，悬停下划线平滑淡入 */
+      p a, .desc a, .sum a {
+        text-decoration:underline; text-decoration-thickness:1px;
+        text-decoration-color:transparent; text-underline-offset:3px;
+        transition:color .15s ease, text-decoration-color .15s ease;
+      }
+      p a:hover, .desc a:hover, .sum a:hover { text-decoration-color:currentColor; }
+
+      .crumbs { max-width:960px; margin:0 auto; padding:1.2rem 1.5rem 0;
+        font-size:.85rem; color:var(--muted); display:flex; gap:.5rem; }
+      .crumbs a { color:var(--muted); transition:color .15s ease; }
+      .crumbs a:hover { color:var(--accent); }
+      .here { color:var(--ink); }
+      main { max-width:960px; margin:0 auto; padding:1.5rem 1.5rem 3rem; }
+      h1 { font-size:clamp(1.5rem,4vw,2.1rem); margin:0 0 .3rem; }
+      .sub { color:var(--muted); font-size:.9rem; margin:0 0 1rem; }
+      section { margin:2.2rem 0; }
+      h2 { font-size:1.15rem; margin:0 0 .2rem; }
+      .desc { color:var(--muted); font-size:.85rem; margin:0 0 .8rem; }
+      .grid { display:grid; gap:.8rem; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); }
+      .card { display:flex; flex-direction:column; gap:.15rem; background:var(--surface);
+        border:1px solid var(--line); border-radius:12px; padding:.85rem 1rem; color:var(--ink);
+        transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+      .card:hover { border-color:var(--accent); text-decoration:none;
+        transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+      .card .en { font-family:var(--mono); font-size:.9rem; color:var(--accent); font-weight:600; }
+      .card .zh { font-size:.95rem; }
+      .card .grade { font-family:var(--mono); font-size:.72rem; color:var(--muted); }
+      footer { border-top:1px solid var(--line); padding:1.4rem; text-align:center;
+        color:var(--muted); font-size:.8rem; max-width:960px; margin:0 auto; }
+      .brand { font-weight:700; letter-spacing:.08em; color:var(--ink); margin:0 0 .4rem; font-size:.95rem; }
+
+      .search-wrap { margin:1rem 0 .5rem; }
+      #term-search { width:100%; padding:.65rem 1rem; font:inherit; font-size:.95rem;
+        background:var(--surface); color:var(--ink); border:1px solid var(--line);
+        border-radius:10px; outline:none; }
+      #term-search:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+      .search-status { color:var(--muted); font-size:.85rem; margin:.5rem 0 0; }
+      #search-results { display:grid; gap:.7rem; }
+      #search-results[hidden] { display:none; }
+    </style>
+
+    <!-- 搜索结果卡由运行时 innerHTML 注入，无 Astro scope 属性，样式必须全局 -->
+    <style is:global>
+      mark { background:var(--accent-soft); color:var(--accent);
+        border-radius:3px; padding:0 .1em; font-weight:600; }
+      a.result {
+        display:flex; flex-direction:column; gap:.15rem;
+        background:var(--surface); border:1px solid var(--line); border-radius:12px;
+        padding:.85rem 1rem; color:var(--ink); text-decoration:none;
+        transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+      }
+      a.result:hover, a.result:focus-visible {
+        border-color:var(--accent); text-decoration:none;
+        transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.08);
+      }
+      a.result .en { font-family:var(--mono); font-size:.9rem; color:var(--accent); font-weight:600; }
+      a.result .zh { font-size:.95rem; }
+      a.result .grade { font-family:var(--mono); font-size:.72rem; color:var(--muted); }
+      a.result .sum { color:var(--muted); font-size:.85rem; margin-top:.2rem; }
+    </style>
+
+    <script define:vars={{ terms }}>
+      (function () {
+        const input = document.getElementById("term-search");
+        const status = document.getElementById("search-status");
+        const results = document.getElementById("search-results");
+        const grouped = document.getElementById("grouped");
+        if (!input || !terms) return;
+
+        // 全字段可检索：名称/slug/分级/概览/小节正文与表格
+        const hay = (t) =>
+          [
+            t.en, t.zh, t.slug, t.grades || "", t.summary,
+            ...t.sections.map((s) =>
+              [s.heading, ...(s.body || []), ...((s.table && s.table.rows.flat()) || [])].join(" ")
+            ),
+          ].join(" ").toLowerCase();
+
+        const index = terms.map((t) => ({ t, hay: hay(t) }));
+
+        const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+        const mark = (text, kws) => {
+          let html = escHtml(text);
+          for (const k of kws) {
+            if (!k) continue;
+            html = html.replace(new RegExp(escRe(k), "gi"), (m) => "<mark>" + m + "</mark>");
+          }
+          return html;
+        };
+
+        function render(q) {
+          const kws = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+          if (kws.length === 0) {
+            grouped.hidden = false;
+            results.hidden = true;
+            results.innerHTML = "";
+            status.hidden = true;
+            return;
+          }
+          const hits = index.filter(({ hay }) => kws.every((k) => hay.includes(k)));
+          grouped.hidden = true;
+          results.hidden = false;
+          status.hidden = false;
+          status.textContent = hits.length
+            ? "匹配 " + hits.length + " 个词条（" + kws.join(" + ") + "）"
+            : "没有匹配「" + q.trim() + "」的词条";
+          results.innerHTML = hits
+            .map(({ t }) =>
+              '<a class="card result" href="/types/' + t.slug + '/">' +
+                '<span class="en">' + mark(t.en, kws) + "</span>" +
+                '<span class="zh">' + mark(t.zh, kws) + "</span>" +
+                (t.grades ? '<span class="grade">' + t.grades + "</span>" : "") +
+                '<span class="sum">' + mark(t.summary, kws) + "</span>" +
+              "</a>"
+            )
+            .join("");
+        }
+
+        input.addEventListener("input", () => render(input.value));
+        input.addEventListener("search", () => render(input.value)); // WebKit 清除按钮
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") { input.value = ""; render(""); input.blur(); }
+        });
+        document.addEventListener("keydown", (e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            input.focus();
+            input.select();
+          }
+        });
+      })();
+    </script>
+    <AiSidebar />
+  </body>
+</html>

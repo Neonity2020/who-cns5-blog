@@ -1,0 +1,316 @@
+---
+// 右侧 AI 助手：悬浮按钮 + 滑出面板；流式回复由 /api/chat 提供
+---
+
+<button id="ai-fab" aria-label="打开 AI 助手" title="AI 助手（Ctrl/⌘+J）">AI</button>
+
+<div id="ai-panel" aria-hidden="true">
+  <header class="ai-head">
+    <div class="ai-title">
+      <span class="ai-dot"></span>
+      <div>
+        <p class="ai-name">AI 助手</p>
+        <p class="ai-sub">WHO CNS5 词条问答 · 认知凤凰社</p>
+      </div>
+    </div>
+    <button id="ai-close" aria-label="关闭">✕</button>
+  </header>
+
+  <div id="ai-messages" aria-live="polite"></div>
+
+  <div class="ai-chips" id="ai-chips">
+    <button data-q="用三句话概括当前词条的核心要点">概括本页</button>
+    <button data-q="这个词条的分级和关键分子标志是什么？">分级与分子</button>
+    <button data-q="列出主要鉴别诊断和鉴别要点">鉴别诊断</button>
+  </div>
+
+  <form id="ai-form" class="ai-input">
+    <textarea id="ai-text" rows="1" placeholder="就本页词条提问…（Enter 发送，Shift+Enter 换行）"></textarea>
+    <button id="ai-send" type="submit" aria-label="发送">➤</button>
+  </form>
+</div>
+
+<style is:global>
+  /* 悬浮按钮 */
+  #ai-fab {
+    position: fixed; right: 20px; bottom: 20px; z-index: 9999;
+    width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent, #0f766e), #14b8a6);
+    color: #fff; font: 700 15px/1 system-ui, sans-serif; letter-spacing: .02em;
+    box-shadow: 0 6px 18px rgba(15, 118, 110, .35);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  #ai-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15, 118, 110, .4); }
+
+  /* 侧边面板 */
+  #ai-panel {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 10000;
+    width: min(400px, 100vw);
+    display: flex; flex-direction: column;
+    background: var(--bg, #faf9f7); color: var(--ink, #1f2933);
+    border-left: 1px solid var(--line, #e4e2dd);
+    box-shadow: -12px 0 32px rgba(0, 0, 0, .12);
+    transform: translateX(105%); visibility: hidden;
+    transition: transform .25s ease, visibility .25s;
+    font: 15px/1.6 system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+  }
+  #ai-panel.open { transform: translateX(0); visibility: visible; }
+
+  .ai-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .9rem 1rem; border-bottom: 1px solid var(--line, #e4e2dd);
+    background: var(--surface, #fff);
+  }
+  .ai-title { display: flex; align-items: center; gap: .6rem; }
+  .ai-dot { width: 9px; height: 9px; border-radius: 50%; background: #10b981;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #10b981 20%, transparent); }
+  .ai-name { margin: 0; font-weight: 700; font-size: .95rem; }
+  .ai-sub { margin: 0; font-size: .72rem; color: var(--muted, #5f6b76); }
+  #ai-close { border: none; background: none; font-size: 1rem; cursor: pointer;
+    color: var(--muted, #5f6b76); padding: .3rem .5rem; border-radius: 8px; }
+  #ai-close:hover { background: var(--accent-soft, #ccfbf1); color: var(--accent, #0f766e); }
+
+  /* 消息区（消息为运行时创建，故用全局样式并以 #ai-messages 限定） */
+  #ai-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex;
+    flex-direction: column; gap: .7rem; }
+  .ai-msg { max-width: 88%; padding: .6rem .85rem; border-radius: 12px;
+    white-space: pre-wrap; word-break: break-word; font-size: .9rem; }
+  .ai-msg.user { align-self: flex-end; background: var(--accent, #0f766e); color: #fff;
+    border-bottom-right-radius: 4px; }
+  .ai-msg.assistant { align-self: flex-start; background: var(--surface, #fff);
+    border: 1px solid var(--line, #e4e2dd); border-bottom-left-radius: 4px; }
+  .ai-msg.assistant.error { border-color: #ef4444; color: #b91c1c; }
+  .ai-msg strong { color: var(--accent, #0f766e); }
+  .ai-msg.user strong { color: #fff; }
+  .ai-cursor::after { content: "▍"; animation: ai-blink 1s steps(1) infinite;
+    color: var(--accent, #0f766e); }
+  @keyframes ai-blink { 50% { opacity: 0; } }
+
+  /* 快捷提问 */
+  .ai-chips { display: flex; gap: .45rem; padding: 0 1rem .6rem; flex-wrap: wrap; }
+  .ai-chips button {
+    border: 1px solid var(--line, #e4e2dd); background: var(--surface, #fff);
+    color: var(--muted, #5f6b76); border-radius: 99px; padding: .28rem .8rem;
+    font-size: .78rem; cursor: pointer; transition: all .15s ease;
+  }
+  .ai-chips button:hover { border-color: var(--accent, #0f766e);
+    color: var(--accent, #0f766e); background: var(--accent-soft, #ccfbf1); }
+
+  /* 输入区 */
+  .ai-input { display: flex; gap: .5rem; padding: .8rem 1rem;
+    border-top: 1px solid var(--line, #e4e2dd); background: var(--surface, #fff); }
+  #ai-text {
+    flex: 1; resize: none; border: 1px solid var(--line, #e4e2dd); border-radius: 10px;
+    padding: .55rem .75rem; font: inherit; font-size: .9rem; outline: none;
+    background: var(--bg, #faf9f7); color: var(--ink, #1f2933);
+    max-height: 120px;
+  }
+  #ai-text:focus { border-color: var(--accent, #0f766e);
+    box-shadow: 0 0 0 3px var(--accent-soft, #ccfbf1); }
+  #ai-send {
+    width: 44px; border: none; border-radius: 10px; cursor: pointer;
+    background: var(--accent, #0f766e); color: #fff; font-size: 1rem;
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  #ai-send:hover { transform: translateY(-1px); }
+  #ai-send:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+  /* AI 回复的 Markdown 元素 */
+  .ai-msg h1, .ai-msg h2, .ai-msg h3, .ai-msg h4 { margin:.45rem 0 .25rem; line-height:1.35; }
+  .ai-msg h1 { font-size:1.05rem; } .ai-msg h2 { font-size:1rem; }
+  .ai-msg h3 { font-size:.95rem; } .ai-msg h4 { font-size:.9rem; }
+  .ai-msg p { margin:.35rem 0; }
+  .ai-msg ul, .ai-msg ol { margin:.3rem 0; padding-left:1.25rem; }
+  .ai-msg li { margin:.15rem 0; }
+  .ai-msg code { background:var(--accent-soft,#ccfbf1); border-radius:4px;
+    padding:.05em .35em; font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    font-size:.82em; color:var(--accent,#0f766e); }
+  .ai-msg pre { background:#1f2933; color:#e5e7eb; border-radius:8px;
+    padding:.6rem .75rem; overflow-x:auto; font-size:.78rem; margin:.4rem 0; }
+  .ai-msg pre code { background:none; color:inherit; padding:0; }
+  .ai-msg table { border-collapse:collapse; width:100%; margin:.45rem 0;
+    font-size:.78rem; display:block; overflow-x:auto; }
+  .ai-msg th, .ai-msg td { border:1px solid var(--line,#e4e2dd);
+    padding:.28rem .55rem; text-align:left; vertical-align:top; }
+  .ai-msg th { background:var(--accent-soft,#ccfbf1); font-weight:600; }
+  .ai-msg blockquote { margin:.4rem 0; padding:.15rem .8rem;
+    border-left:3px solid var(--accent,#0f766e);
+    color:var(--muted,#5f6b76); background:var(--surface,#fff); }
+  .ai-msg hr { border:none; border-top:1px solid var(--line,#e4e2dd); margin:.6rem 0; }
+  .ai-msg a { color:var(--accent,#0f766e); text-decoration:underline;
+    text-underline-offset:2px; }
+
+  /* KaTeX 公式 */
+  .katex { font-size:.98em; }
+  .katex-display { overflow-x:auto; overflow-y:hidden; padding:.2rem 0; margin:.4rem 0; }
+  .katex-display > .katex { font-size:1.02em; }
+</style>
+
+<script>
+  import { marked } from "marked";
+  import markedKatex from "marked-katex-extension";
+  import DOMPurify from "dompurify";
+  import "katex/dist/katex.min.css";
+
+  marked.use(
+    markedKatex({ throwOnError: false, nonStandard: true }) as any
+  );
+  const renderMd = (src: string) => {
+    const html = marked.parse(src, { async: false, breaks: true }) as string;
+    const clean = DOMPurify.sanitize(html, { ADD_ATTR: ["target"] });
+    const tpl = document.createElement("template");
+    tpl.innerHTML = clean;
+    tpl.content
+      .querySelectorAll("a[href]")
+      .forEach((a) => ((a as HTMLAnchorElement).target = "_blank"));
+    return tpl.innerHTML;
+  };
+
+  const panel = document.getElementById("ai-panel")!;
+  const fab = document.getElementById("ai-fab")!;
+  const closeBtn = document.getElementById("ai-close")!;
+  const messagesEl = document.getElementById("ai-messages")!;
+  const chipsEl = document.getElementById("ai-chips")!;
+  const form = document.getElementById("ai-form") as HTMLFormElement;
+  const textEl = document.getElementById("ai-text") as HTMLTextAreaElement;
+  const sendBtn = document.getElementById("ai-send") as HTMLButtonElement;
+
+  const slug = (location.pathname.match(/\/types\/([^/]+)\/?$/) ?? [])[1] ?? null;
+  const history: { role: "user" | "assistant"; content: string }[] = [];
+  let streaming = false;
+  let controller: AbortController | null = null;
+
+
+
+  function addMsg(role: "user" | "assistant", html: string) {
+    const div = document.createElement("div");
+    div.className = `ai-msg ${role}`;
+    div.innerHTML = html;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  function setOpen(open: boolean) {
+    panel.classList.toggle("open", open);
+    panel.setAttribute("aria-hidden", String(!open));
+    if (open) {
+      fab.style.display = "none";
+      if (messagesEl.childElementCount === 0) {
+        addMsg(
+          "assistant",
+          renderMd(
+            "你好！我是本站 AI 助手 🦚\n可以就 **WHO CNS5 分类词条**向我提问，我会结合你当前浏览的词条内容作答。\n试试下方快捷提问，或直接输入问题。"
+          )
+        );
+      }
+      setTimeout(() => textEl.focus(), 250);
+    } else {
+      fab.style.display = "";
+    }
+  }
+
+  fab.addEventListener("click", () => setOpen(true));
+  closeBtn.addEventListener("click", () => setOpen(false));
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
+      e.preventDefault();
+      setOpen(!panel.classList.contains("open"));
+    }
+    if (e.key === "Escape" && panel.classList.contains("open")) setOpen(false);
+  });
+
+  chipsEl.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest("button[data-q]");
+    if (btn) ask((btn as HTMLElement).dataset.q!);
+  });
+
+  textEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (streaming) { controller?.abort(); return; }
+    const q = textEl.value.trim();
+    if (q) ask(q);
+  });
+
+  function setBusy(b: boolean) {
+    streaming = b;
+    sendBtn.textContent = b ? "■" : "➤";
+    sendBtn.title = b ? "停止生成" : "发送";
+  }
+
+  async function ask(q: string) {
+    if (streaming) return;
+    textEl.value = "";
+    history.push({ role: "user", content: q });
+    addMsg("user", renderMd(q));
+    setBusy(true);
+
+    const bubble = addMsg("assistant", '<span class="ai-cursor"></span>');
+    let acc = "";
+    controller = new AbortController();
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({ slug, messages: history }),
+      });
+      if (!res.ok || !res.body) throw new Error("服务不可用（HTTP " + res.status + "）");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let done = false;
+      while (!done) {
+        const { done: d, value } = await reader.read();
+        if (d) break;
+        buf += decoder.decode(value, { stream: true });
+        let i: number;
+        while ((i = buf.indexOf("\n\n")) !== -1) {
+          const frame = buf.slice(0, i);
+          buf = buf.slice(i + 2);
+          let event = "message";
+          let data = "";
+          for (const line of frame.split("\n")) {
+            if (line.startsWith("event:")) event = line.slice(6).trim();
+            else if (line.startsWith("data:")) data += line.slice(5).trim();
+          }
+          if (!data) continue;
+          if (event === "delta") {
+            acc += JSON.parse(data);
+            bubble.innerHTML = renderMd(acc) + '<span class="ai-cursor"></span>';
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+          } else if (event === "error") {
+            bubble.classList.add("error");
+            acc += "\n" + JSON.parse(data);
+            done = true;
+          } else if (event === "done") {
+            done = true;
+          }
+        }
+      }
+      bubble.innerHTML = renderMd(acc) || "（空回复）";
+      history.push({ role: "assistant", content: acc });
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        bubble.innerHTML = renderMd(acc + "\n\n（已停止生成）");
+        if (acc) history.push({ role: "assistant", content: acc });
+      } else {
+        bubble.classList.add("error");
+        bubble.innerHTML = renderMd("连接失败：" + (err as Error).message);
+      }
+    } finally {
+      setBusy(false);
+      controller = null;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  }
+</script>
