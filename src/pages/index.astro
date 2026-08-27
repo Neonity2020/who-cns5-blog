@@ -11,7 +11,8 @@ type TreeNode = {
   items: {
     name: string;
     slug?: string;
-    children?: { name: string; slug?: string }[];
+    note?: string;
+    children?: { name: string; slug?: string; note?: string }[];
   }[];
 };
 
