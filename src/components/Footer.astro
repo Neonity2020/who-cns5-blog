@@ -1,0 +1,52 @@
+---
+interface Props {
+  customNote?: string;
+}
+
+const { customNote } = Astro.props;
+---
+
+<footer>
+  <p class="brand">「认知凤凰社」出品</p>
+  {customNote ? (
+    <p set:html={customNote} />
+  ) : (
+    <p>
+      内容重构自
+      <a href="https://radiopaedia.org/articles/who-classification-of-cns-tumours-1?lang=us" target="_blank" rel="noopener">Radiopaedia《WHO classification of CNS tumors》</a>
+      （Last revised 2026-01-19），与
+      <a href="https://github.com" target="_blank" rel="noopener">mri-wiki-cn</a> 知识库笔记同源。
+      原文采用 <strong>CC BY-NC-SA</strong> 许可；本站为署名-非商业性提炼笔记，仅供学习交流。
+    </p>
+  )}
+</footer>
+
+<style>
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.82rem;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .brand {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
+  }
+  footer a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  }
+  footer a:hover {
+    text-decoration-color: currentColor;
+  }
+</style>

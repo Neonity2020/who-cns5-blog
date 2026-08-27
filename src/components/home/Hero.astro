@@ -1,0 +1,57 @@
+---
+interface Props {
+  kicker?: string;
+  titleHtml?: string;
+  metaText?: string;
+  sourceUrl?: string;
+  sourceLabel?: string;
+}
+
+const {
+  kicker = "影像知识笔记 · 神经肿瘤",
+  metaText = "2026-08-27 发布 · 约 8 分钟 ·",
+  sourceUrl = "https://radiopaedia.org/articles/who-classification-of-cns-tumours-1?lang=us",
+  sourceLabel = "原文：Radiopaedia",
+} = Astro.props;
+---
+
+<header class="hero">
+  <p class="kicker">{kicker}</p>
+  <h1>
+    WHO 中枢神经系统肿瘤分类<br />
+    <span class="accent">第 5 版（CNS5, 2021）速览</span>
+  </h1>
+  <p class="meta">
+    {metaText}
+    <a href={sourceUrl} target="_blank" rel="noopener">{sourceLabel}</a>
+  </p>
+</header>
+
+<style>
+  .hero {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 2rem;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.75rem;
+  }
+  .hero h1 {
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    line-height: 1.25;
+    margin: 0 0 0.9rem;
+  }
+  .hero .accent {
+    color: var(--accent);
+  }
+  .hero .meta {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+</style>

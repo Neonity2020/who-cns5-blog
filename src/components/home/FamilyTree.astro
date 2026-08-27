@@ -1,0 +1,172 @@
+---
+import { families as defaultFamilies, type TreeNode } from "../../data/cns5-data";
+
+interface Props {
+  families?: TreeNode[];
+}
+
+const { families = defaultFamilies } = Astro.props;
+---
+
+<section id="tree">
+  <h2>分类树：11 大家族</h2>
+  <p class="hint">
+    点击任一家族展开其类型与亚型（※ = 暂定纳入 provisional）。
+    家族名可点击进入<a href="/types/">分类词条系统</a>对应词条页（英文名索引）。
+  </p>
+  <div class="tree">
+    {families.map((f, i) => (
+      <details class="family" open={i === 0} id={f.id}>
+        <summary>
+          <span class="family-index">{String(i + 1).padStart(2, "0")}</span>
+          <span class="family-name">
+            {f.slug ? <a href={`/types/${f.slug}/`}>{f.name}</a> : f.name}
+          </span>
+          {f.note && <span class="family-note">{f.note}</span>}
+        </summary>
+        <ul>
+          {f.items.map((item) => (
+            <li>
+              {item.slug ? (
+                <a class="type-name term-link" href={`/types/${item.slug}/`}>{item.name}</a>
+              ) : (
+                <span class="type-name">{item.name}</span>
+              )}
+              {item.children && (
+                <ul>
+                  {item.children.map((c) => (
+                    <li>
+                      {c.slug ? (
+                        <a href={`/types/${c.slug}/`}>{c.name}</a>
+                      ) : (
+                        c.name
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      </details>
+    ))}
+  </div>
+</section>
+
+<style>
+  section {
+    margin: 0 0 3rem;
+    scroll-margin-top: 2rem;
+  }
+  h2 {
+    font-size: 1.3rem;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+  .tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-top: 1rem;
+  }
+  .family {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .family summary {
+    cursor: pointer;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    list-style: none;
+    flex-wrap: wrap;
+  }
+  .family summary::-webkit-details-marker {
+    display: none;
+  }
+  .family summary:hover {
+    background: var(--accent-soft);
+  }
+  .family[open] summary {
+    border-bottom: 1px solid var(--line);
+  }
+  .family-index {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 0.85rem;
+  }
+  .family-name {
+    font-weight: 700;
+  }
+  .family-name a {
+    color: inherit;
+    transition: color 0.15s ease;
+  }
+  .family-name a:hover {
+    color: var(--accent);
+  }
+  .family-note {
+    color: var(--muted);
+    font-size: 0.82rem;
+    width: 100%;
+    padding-left: 2.2rem;
+  }
+  .family > ul {
+    margin: 0;
+    padding: 0.6rem 1.1rem 0.9rem 2.9rem;
+  }
+  .family > ul > li {
+    margin: 0.35rem 0;
+  }
+  .type-name {
+    font-weight: 600;
+  }
+  .family ul ul li a {
+    color: var(--ink);
+    transition: color 0.15s ease;
+  }
+  .family ul ul li a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  a.term-link {
+    color: var(--ink);
+    transition: color 0.15s ease;
+  }
+  a.term-link:hover {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  a.term-link::after {
+    content: " ↗";
+    font-size: 0.78em;
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
+  }
+  a.term-link:hover::after {
+    opacity: 1;
+  }
+  .family ul ul {
+    margin: 0.2rem 0 0;
+    padding-left: 1.3rem;
+  }
+  .family ul ul li {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0.15rem 0;
+    list-style: "· ";
+  }
+  .family ul ul li::marker {
+    color: var(--accent);
+  }
+</style>

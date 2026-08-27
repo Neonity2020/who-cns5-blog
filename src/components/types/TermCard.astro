@@ -1,0 +1,50 @@
+---
+import type { Term } from "../../data/terms";
+
+interface Props {
+  term: Term;
+}
+
+const { term } = Astro.props;
+---
+
+<a class="card" href={`/types/${term.slug}/`}>
+  <span class="en">{term.en}</span>
+  <span class="zh">{term.zh}</span>
+  {term.grades && <span class="grade">{term.grades}</span>}
+</a>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    color: var(--ink);
+    transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    text-decoration: none;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+  .card .en {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .card .zh {
+    font-size: 0.95rem;
+  }
+  .card .grade {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+</style>

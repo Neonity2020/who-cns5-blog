@@ -1,0 +1,83 @@
+---
+import type { Term } from "../../data/terms";
+
+type Section = Term["sections"][number];
+
+interface Props {
+  section: Section;
+}
+
+const { section } = Astro.props;
+
+const md = (s: string) =>
+  s
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[([^\]]+)\]\((\/types\/[a-z0-9-]+\/?)\)/g, '<a href="$2">$1</a>');
+---
+
+<section class="term-section">
+  <h2>{section.heading}</h2>
+  {section.body && section.body.map((p) => <p set:html={md(p)} />)}
+  {section.table && (
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            {section.table.head.map((h) => (
+              <th>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {section.table.rows.map((row) => (
+            <tr>
+              {row.map((cell) => (
+                <td set:html={md(cell)} />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</section>
+
+<style>
+  .term-section {
+    margin: 0 0 2.4rem;
+  }
+  h2 {
+    font-size: 1.2rem;
+    margin: 0 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line);
+  }
+  p {
+    margin: 0.5rem 0;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  th, td {
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--accent-soft);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+</style>

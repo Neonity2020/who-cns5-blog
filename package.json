@@ -15,6 +15,7 @@
   "dependencies": {
     "@astrojs/netlify": "^8.2.4",
     "@astrojs/node": "^11.1.4",
+    "@netlify/blobs": "^11.0.1",
     "astro": "^7.2.8",
     "dompurify": "^3.4.14",
     "katex": "^0.18.4",

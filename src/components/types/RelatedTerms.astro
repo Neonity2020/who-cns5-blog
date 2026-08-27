@@ -1,0 +1,88 @@
+---
+import type { Term } from "../../data/terms";
+
+interface RelatedItem {
+  slug?: string;
+  label: string;
+  term?: Term;
+}
+
+interface Props {
+  items: RelatedItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{items.length > 0 && (
+  <section class="related-section">
+    <h2>相关词条</h2>
+    <ul class="related">
+      {items.map((r) => (
+        <li>
+          <a href={`/types/${r.slug}/`}>{r.label}</a>
+          {r.term?.zh && <span class="zh-inline">{r.term.zh}</span>}
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .related-section {
+    margin: 0 0 2.4rem;
+  }
+  h2 {
+    font-size: 1.2rem;
+    margin: 0 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .related {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .related li {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .related a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    padding: 0.32rem 0.95rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--ink);
+    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+    text-decoration: none;
+  }
+  .related a::after {
+    content: "→";
+    color: var(--muted);
+    transition: transform 0.18s ease, color 0.18s ease;
+  }
+  .related a:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .related a:hover::after {
+    transform: translateX(3px);
+    color: var(--accent);
+  }
+  .zh-inline {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+</style>

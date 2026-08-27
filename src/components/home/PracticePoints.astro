@@ -1,0 +1,37 @@
+---
+import { practicePoints as defaultPracticePoints } from "../../data/cns5-data";
+
+interface Props {
+  points?: string[];
+}
+
+const { points = defaultPracticePoints } = Astro.props;
+---
+
+<section id="practice">
+  <h2>实务要点</h2>
+  <ul class="practice">
+    {points.map((p) => (
+      <li set:html={p} />
+    ))}
+  </ul>
+</section>
+
+<style>
+  section {
+    margin: 0 0 3rem;
+    scroll-margin-top: 2rem;
+  }
+  h2 {
+    font-size: 1.3rem;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .practice {
+    padding-left: 1.2rem;
+  }
+  .practice li {
+    margin: 0.45rem 0;
+  }
+</style>

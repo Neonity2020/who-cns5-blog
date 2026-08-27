@@ -1,0 +1,142 @@
+---
+import { layers as defaultLayers } from "../../data/cns5-data";
+
+interface LayerItem {
+  label: string;
+  desc: string;
+}
+
+interface Props {
+  layers?: LayerItem[];
+}
+
+const { layers = defaultLayers } = Astro.props;
+---
+
+<section id="integrated">
+  <h2>综合诊断：四层结构</h2>
+  <p>每份病理报告按以下四层自下而上合成最终诊断：</p>
+  <ol class="layers">
+    {layers.map((l, i) => (
+      <li style={`--i:${i}`}>
+        <span class="layer-label">{l.label}</span>
+        <span class="layer-desc">{l.desc}</span>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<section id="terminology">
+  <h2>术语与标签</h2>
+  <div class="two-col">
+    <table>
+      <thead>
+        <tr><th>旧术语</th><th>CNS5 新术语</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>entity（实体）</td>
+          <td><strong>type（类型）</strong></td>
+          <td rowspan="2">脑（脊）膜瘤 = 一个 type，下辖脊索样 / 横纹肌样 / 透明细胞等多个 subtype</td>
+        </tr>
+        <tr>
+          <td>variant（变异型）</td>
+          <td><strong>subtype（亚型）</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <p><strong>NOS vs NEC</strong></p>
+      <p><strong>NOS</strong>（not otherwise specified）：分子检测不全，无法进一步分类。</p>
+      <p><strong>NEC</strong>（not elsewhere classified）：分子特征已完全明确，但不符现有分类框架——这是 CNS5 新增的标签。</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  section {
+    margin: 0 0 3rem;
+    scroll-margin-top: 2rem;
+  }
+  h2 {
+    font-size: 1.3rem;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  p {
+    margin: 0.6rem 0;
+  }
+  .layers {
+    list-style: none;
+    padding: 0;
+    margin: 1.2rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .layers li {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.75rem 1.1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    margin-left: calc(var(--i) * 1.5rem);
+  }
+  .layer-label {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .layer-desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .two-col {
+    display: grid;
+    gap: 1.2rem;
+  }
+  @media (min-width: 760px) {
+    .two-col {
+      grid-template-columns: 1.4fr 1fr;
+    }
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-size: 0.92rem;
+  }
+  th {
+    background: var(--accent-soft);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.92rem;
+  }
+  .callout p:first-child {
+    margin-top: 0;
+    font-weight: 700;
+  }
+  .callout p:last-child {
+    margin-bottom: 0;
+  }
+</style>

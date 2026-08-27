@@ -1,0 +1,57 @@
+---
+export interface CrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: CrumbItem[];
+  maxWidth?: string;
+}
+
+const { items, maxWidth = "960px" } = Astro.props;
+---
+
+<nav class="crumbs" style={`--crumbs-max-width: ${maxWidth};`}>
+  {items.map((item, index) => {
+    const isLast = index === items.length - 1;
+    return (
+      <>
+        {item.href && !isLast ? (
+          <a href={item.href}>{item.label}</a>
+        ) : (
+          <span class="here">{item.label}</span>
+        )}
+        {!isLast && <span class="sep">/</span>}
+      </>
+    );
+  })}
+</nav>
+
+<style>
+  .crumbs {
+    max-width: var(--crumbs-max-width, 960px);
+    margin: 0 auto;
+    padding: 1.2rem 1.5rem 0;
+    font-size: 0.88rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .crumbs a {
+    color: var(--muted);
+    transition: color 0.15s ease;
+  }
+  .crumbs a:hover {
+    color: var(--accent);
+  }
+  .crumbs .sep {
+    opacity: 0.5;
+  }
+  .crumbs .here {
+    color: var(--ink);
+    font-weight: 500;
+  }
+</style>

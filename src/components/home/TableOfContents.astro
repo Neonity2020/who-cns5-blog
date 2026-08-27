@@ -1,0 +1,66 @@
+---
+interface TocItem {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  title?: string;
+  items?: TocItem[];
+}
+
+const {
+  title = "目录",
+  items = [
+    { href: "#overview", label: "一句话概览" },
+    { href: "#integrated", label: "综合诊断：四层结构" },
+    { href: "#terminology", label: "术语与标签" },
+    { href: "#grading", label: "分级制度四大变化" },
+    { href: "#tree", label: "分类树：11 大家族" },
+    { href: "/types/", label: "分类词条系统" },
+    { href: "#cns5-vs-2016", label: "CNS5 vs 2016 修订版" },
+    { href: "#practice", label: "实务要点" },
+  ],
+} = Astro.props;
+---
+
+<nav class="toc" aria-label="目录">
+  <p class="toc-title">{title}</p>
+  {items.map((item) => (
+    <a href={item.href}>{item.label}</a>
+  ))}
+</nav>
+
+<style>
+  .toc {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border-left: 2px solid var(--line);
+    padding-left: 1rem;
+    font-size: 0.88rem;
+  }
+  @media (min-width: 900px) {
+    .toc {
+      position: sticky;
+      top: 2rem;
+      align-self: start;
+    }
+  }
+  .toc-title {
+    font-family: var(--mono);
+    color: var(--muted);
+    margin: 0 0 0.3rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+  }
+  .toc a {
+    color: var(--muted);
+    transition: color 0.15s ease;
+    text-decoration: none;
+  }
+  .toc a:hover {
+    color: var(--accent);
+    text-decoration: none;
+  }
+</style>

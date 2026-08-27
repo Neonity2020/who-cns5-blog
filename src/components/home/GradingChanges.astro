@@ -1,0 +1,60 @@
+---
+import { gradingChanges as defaultGradingChanges } from "../../data/cns5-data";
+
+interface GradingChangeItem {
+  title: string;
+  body: string;
+}
+
+interface Props {
+  gradingChanges?: GradingChangeItem[];
+}
+
+const { gradingChanges = defaultGradingChanges } = Astro.props;
+---
+
+<section id="grading">
+  <h2>分级制度四大变化</h2>
+  <div class="cards">
+    {gradingChanges.map((g) => (
+      <article class="card">
+        <h3>{g.title}</h3>
+        <p>{g.body}</p>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  section {
+    margin: 0 0 3rem;
+    scroll-margin-top: 2rem;
+  }
+  h2 {
+    font-size: 1.3rem;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .cards {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    margin-top: 1rem;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+  }
+  .card h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+    color: var(--accent);
+  }
+  .card p {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+</style>
